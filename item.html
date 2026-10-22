@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>アイテムせんたく - うでずもう</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .container {
+    width: 95%;
+    max-width: 950px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    padding: 30px 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    text-align: center;
+  }
+
+  /* 見出しエリア */
+  .badge {
+    display: inline-block;
+    background: #f59e0b;
+    color: white;
+    font-size: 1.8rem;
+    font-weight: bold;
+    padding: 8px 36px;
+    border-radius: 50px;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    color: #b45309;
+    margin: 0 0 25px 0;
+  }
+
+  /* アイテムカード3つ並び */
+  .card-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+
+  .item-card {
+    flex: 1;
+    background: #fff;
+    border: 5px solid #e5e7eb;
+    border-radius: 24px;
+    padding: 20px 10px;
+    cursor: pointer;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* 選択されたカードの強調 */
+  .item-card.selected {
+    border-color: #ef4444;
+    background: #fef2f2;
+    transform: scale(1.05);
+    box-shadow: 0 12px 25px rgba(239, 68, 68, 0.25);
+  }
+
+  /* 画像枠エリア（画像がない時はイラストやアイコンが入ります） */
+  .image-wrapper {
+    width: 100%;
+    height: 180px;
+    background: #f8fafc;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 16px;
+    border: 2px dashed #cbd5e1;
+  }
+
+  .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .placeholder-icon {
+    font-size: 5rem;
+  }
+
+  /* アイテムの名前 */
+  .item-label {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #1f2937;
+    line-height: 1.3;
+  }
+
+  .item-desc {
+    font-size: 1.1rem;
+    color: #64748b;
+    margin-top: 6px;
+  }
+
+  /* 決定・次へボタン */
+  .next-btn {
+    display: none;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 16px 60px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+    margin: 0 auto;
+    animation: popIn 0.3s ease;
+  }
+  .next-btn:active { transform: scale(0.96); }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="badge">アイテム</div>
+    <h1>かつためのアイテムを えらぼう！</h1>
+
+    <div class="card-container">
+      <!-- カード1: 3びょうていし -->
+      <div class="item-card" onclick="selectItem(0, '3びょうていし')">
+        <div class="image-wrapper">
+          <!-- 任意の画像を入れる場合は下のコメントアウトを解除し、srcにファイル名を指定してください -->
+            <img src="item1.png" alt="3びょうていし">
+        </div>
+        <div class="item-label">3びょうていし</div>
+        <div class="item-desc">あいては 3びょう うごけない！</div>
+      </div>
+
+      <!-- カード2: ひとさし指だけ -->
+      <div class="item-card" onclick="selectItem(1, 'ひとさし指だけ')">
+        <div class="image-wrapper">
+          <img src="item2.png" alt="ひとさし指だけ">
+        </div>
+        <div class="item-label">ひとさし指だけ</div>
+        <div class="item-desc">あいては ゆび1ぽんで しょうぶ！</div>
+      </div>
+
+      <!-- カード3: スタートいちへんこう -->
+      <div class="item-card" onclick="selectItem(2, 'スタートいちへんこう')">
+        <div class="image-wrapper">
+          <img src="item3.png" alt="スタートいちへんこう">
+        </div>
+        <div class="item-label">スタートいち<br>へんこう</div>
+        <div class="item-desc">すこし たおした じょうたいで スタート！</div>
+      </div>
+    </div>
+
+    <!-- 先生がタップして次へ進むボタン -->
+    <button id="start-btn" class="next-btn" onclick="goToBattle()">
+      このアイテムで うでずもう！ 💪
+    </button>
+  </div>
+
+<script>
+  /* 効果音（Web Audio API・オフライン対応） */
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playBeep() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.frequency.setValueAtTime(523.25, now); // ド
+    osc.frequency.setValueAtTime(659.25, now + 0.1); // ミ
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.25);
+    osc.start(now);
+    osc.stop(now + 0.25);
+  }
+
+  let selectedName = "";
+
+  function selectItem(index, name) {
+    playBeep();
+    selectedName = name;
+
+    // 全てのカードの選択枠を外し、選んだものだけ赤枠強調
+    const cards = document.querySelectorAll('.item-card');
+    cards.forEach((card, idx) => {
+      if (idx === index) {
+        card.classList.add('selected');
+      } else {
+        card.classList.remove('selected');
+      }
+    });
+
+    // 「うでずもう！」ボタンを表示
+    const btn = document.getElementById('start-btn');
+    btn.style.display = 'block';
+  }
+
+  function goToBattle() {
+    alert(`「${selectedName}」をつかって、うでずもうスタート！`);
+  }
+</script>
+</body>
+</html>
