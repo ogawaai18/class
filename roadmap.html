@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>うでずもう チャンピオンロード - ロードマップ</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', sans-serif;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background-color: #0b192c;
+      color: #fff;
+    }
+
+    /* 上部ヘッダー */
+    header {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #00d2ff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      z-index: 10;
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid #00d2ff;
+      color: #fff;
+      padding: 8px 18px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .back-btn:active {
+      background: rgba(0, 210, 255, 0.4);
+    }
+
+    .road-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-shadow: 0 3px 6px rgba(0,0,0,0.5);
+      color: #00f0ff;
+    }
+
+    /* 情報表示バー */
+    .status-bar {
+      background: rgba(10, 25, 47, 0.88);
+      border-bottom: 2px solid rgba(0, 210, 255, 0.4);
+      padding: 10px 15px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      z-index: 5;
+    }
+
+    .status-tag {
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid #00d2ff;
+      padding: 6px 18px;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .num-highlight {
+      color: #ffe600;
+      font-size: 1.7rem;
+    }
+
+    /* ロードマップメインエリア */
+    .map-container {
+      flex: 1;
+      position: relative;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .map-container::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 25, 47, 0.4);
+      z-index: 1;
+    }
+
+    /* レーン */
+    .track-wrapper {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      background: rgba(10, 25, 47, 0.78);
+      border: 4px solid #00d2ff;
+      border-radius: 45px;
+      padding: 70px 20px 35px 20px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 25px rgba(0, 210, 255, 0.35);
+    }
+
+    /* 各マスのコンテナ */
+    .step-node {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+
+    /* スタート地点専用ボタン */
+    .start-circle {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #48bb78, #22543d);
+      border: 5px solid #68d391;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: #ffffff;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .start-flag {
+      font-size: 1.6rem;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .start-circle:active {
+      transform: scale(0.92);
+    }
+
+    /* 丸い数字マスボタン */
+    .step-circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffffff, #b0c4de);
+      border: 6px solid #2a5298;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.3rem;
+      font-weight: 900;
+      color: #1a365d;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .step-circle:active {
+      transform: scale(0.92);
+    }
+
+    /* 現在地（光る演出） */
+    .step-circle.active,
+    .start-circle.active {
+      border-color: #00f0ff !important;
+      transform: scale(1.15);
+      box-shadow: 0 0 30px #00f0ff, 0 0 20px #ffe600;
+      animation: pulseStep 1.6s infinite;
+    }
+
+    .step-circle.active {
+      background: radial-gradient(circle at 30% 30%, #fff799, #ffcc00);
+      color: #000;
+    }
+
+    .start-circle.active {
+      background: radial-gradient(circle at 30% 30%, #68d391, #2f855a);
+    }
+
+    /* 「いまここ」ピン表示 */
+    .step-circle.active::after,
+    .start-circle.active::after {
+      content: "★いまここ";
+      position: absolute;
+      bottom: -32px;
+      white-space: nowrap;
+      font-size: 1rem;
+      font-weight: 900;
+      background: #00f0ff;
+      color: #002b4d;
+      padding: 3px 12px;
+      border-radius: 14px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    }
+
+    @keyframes pulseStep {
+      0% { transform: scale(1.15); box-shadow: 0 0 20px #00f0ff; }
+      50% { transform: scale(1.22); box-shadow: 0 0 35px #00f0ff, 0 0 25px #ffe600; }
+      100% { transform: scale(1.15); box-shadow: 0 0 20px #00f0ff; }
+    }
+
+    /* 宝箱ボタン */
+    .chest-btn {
+      position: absolute;
+      top: -72px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: bounceChest 2s infinite ease-in-out;
+      z-index: 5;
+    }
+
+    .chest-icon {
+      font-size: 3.5rem;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6));
+    }
+
+    .chest-label {
+      font-size: 0.95rem;
+      background: #ffcc00;
+      color: #222;
+      font-weight: 900;
+      padding: 2px 10px;
+      border-radius: 10px;
+      margin-top: -6px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+      border: 2px solid #ffffff;
+    }
+
+    .chest-btn:active {
+      transform: scale(0.9);
+    }
+
+    @keyframes bounceChest {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-9px); }
+    }
+
+    /* チャンピオン冠 */
+    .goal-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      position: relative;
+    }
+
+    .crown-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .crown-icon {
+      font-size: 4.4rem;
+      filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.75));
+      animation: crownShine 2.5s infinite;
+    }
+
+    .crown-label {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #ffe600;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+      margin-top: -6px;
+    }
+
+    @keyframes crownShine {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(3deg); }
+    }
+
+    /* 下部ボタン */
+    .bottom-bar {
+      position: relative;
+      z-index: 10;
+      padding: 16px 20px;
+      background: rgba(10, 25, 47, 0.92);
+      border-top: 3px solid #00d2ff;
+      display: flex;
+      justify-content: center;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .battle-btn {
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+      color: #fff;
+      border: 4px solid #ffffff;
+      border-radius: 40px;
+      padding: 16px 60px;
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0, 114, 255, 0.6);
+      transition: transform 0.15s ease, filter 0.2s;
+    }
+
+    .battle-btn:active {
+      transform: scale(0.95);
+      filter: brightness(0.9);
+    }
+
+    /* iPad 縦向き対応 */
+    @media (orientation: portrait) {
+      .track-wrapper {
+        padding: 55px 10px 25px 10px;
+      }
+      .step-circle, .start-circle {
+        width: 68px;
+        height: 68px;
+        font-size: 1.6rem;
+      }
+      .start-flag {
+        font-size: 1.2rem;
+      }
+      .chest-btn {
+        top: -55px;
+      }
+      .chest-icon {
+        font-size: 2.6rem;
+      }
+      .crown-icon {
+        font-size: 3.2rem;
+      }
+      .status-bar {
+        font-size: 1.1rem;
+        gap: 12px;
+      }
+      .battle-btn {
+        font-size: 1.4rem;
+        padding: 14px 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <button class="back-btn" onclick="goBack()">＜ えらびなおす</button>
+    <div class="road-title" id="roadTitle">ロードマップ</div>
+    <div style="width: 80px;"></div>
+  </header>
+
+  <div class="status-bar">
+    <div class="status-tag" id="tagChest">
+      <span>🎁 アイテムまで</span>
+      <span class="num-highlight" id="remainChestText">-</span>
+    </div>
+    <div class="status-tag">
+      <span>👑 チャンピオンまで</span>
+      <span class="num-highlight" id="remainGoalText">-</span>
+    </div>
+  </div>
+
+  <main class="map-container" id="mapContainer">
+    <div class="track-wrapper" id="trackWrapper"></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <button class="battle-btn" type="button" onclick="goToOpponentScreen()">
+      たいせんあいて を えらぶ！ ＞
+    </button>
+  </footer>
+
+  <script>
+    const ROAD_DATA = {
+      'うみのみち': {
+        name: 'うみ の みち',
+        bg: 'umi.png',
+        totalSteps: 3,
+        itemStep: 1
+      },
+      'やまのみち': {
+        name: 'やま の みち',
+        bg: 'yama.png',
+        totalSteps: 4,
+        itemStep: 1
+      },
+      'そらのみち': {
+        name: 'そら の みち',
+        bg: 'sora.png',
+        totalSteps: 5,
+        itemStep: 2
+      }
+    };
+
+    const selectedKey = localStorage.getItem('selectedRoad') || 'うみのみち';
+    const config = ROAD_DATA[selectedKey] || ROAD_DATA['うみのみち'];
+
+    let currentStep = localStorage.getItem('currentStep_' + selectedKey) !== null
+      ? parseInt(localStorage.getItem('currentStep_' + selectedKey))
+      : 0;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('roadTitle').innerText = config.name;
+      document.getElementById('mapContainer').style.backgroundImage = `url('${config.bg}')`;
+      renderTrack();
+      updateStatus();
+    });
+
+    function renderTrack() {
+      const wrapper = document.getElementById('trackWrapper');
+      wrapper.innerHTML = '';
+
+      // スタート地点
+      const startNode = document.createElement('div');
+      startNode.className = 'step-node';
+      const startCircle = document.createElement('button');
+      startCircle.type = 'button';
+      startCircle.className = 'start-circle';
+      startCircle.id = 'step-0';
+      startCircle.innerHTML = `
+        <span class="start-flag">🚩</span>
+        <span>START</span>
+      `;
+      if (currentStep === 0) {
+        startCircle.classList.add('active');
+      }
+      startCircle.onclick = () => {
+        setStep(0);
+      };
+      startNode.appendChild(startCircle);
+      wrapper.appendChild(startNode);
+
+      // 各マス
+      for (let i = 1; i <= config.totalSteps; i++) {
+        const node = document.createElement('div');
+        node.className = 'step-node';
+
+        if (i === config.itemStep) {
+          const chestBtn = document.createElement('button');
+          chestBtn.type = 'button';
+          chestBtn.className = 'chest-btn';
+          chestBtn.innerHTML = `
+            <span class="chest-icon">🎁</span>
+            <span class="chest-label">アイテム</span>
+          `;
+          chestBtn.onclick = (e) => {
+            e.stopPropagation();
+            goToItemScreen();
+          };
+          node.appendChild(chestBtn);
+        }
+
+        const circle = document.createElement('button');
+        circle.type = 'button';
+        circle.className = 'step-circle';
+        circle.id = `step-${i}`;
+        circle.innerText = i;
+
+        if (i === currentStep) {
+          circle.classList.add('active');
+        }
+
+        circle.onclick = () => {
+          setStep(i);
+        };
+
+        node.appendChild(circle);
+        wrapper.appendChild(node);
+      }
+
+      // ゴール
+      const goalNode = document.createElement('div');
+      goalNode.className = 'goal-node';
+      goalNode.innerHTML = `
+        <button type="button" class="crown-btn" onclick="goToChampionScreen()">
+          <span class="crown-icon">👑</span>
+          <span class="crown-label">GOAL</span>
+        </button>
+      `;
+      wrapper.appendChild(goalNode);
+    }
+
+    function setStep(stepNum) {
+      currentStep = stepNum;
+      localStorage.setItem('currentStep_' + selectedKey, currentStep);
+
+      document.querySelectorAll('.step-circle, .start-circle').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`step-${stepNum}`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
+
+      if (stepNum === 0) {
+        speakText('スタート');
+      } else {
+        speakText(`${stepNum}マスめ`);
+      }
+
+      updateStatus();
+    }
+
+    function updateStatus() {
+      const goalPos = config.totalSteps + 1;
+      const remainGoal = goalPos - currentStep;
+      const remainGoalText = document.getElementById('remainGoalText');
+      if (remainGoal <= 0) {
+        remainGoalText.innerText = 'とうちゃく！';
+      } else {
+        remainGoalText.innerText = `あと ${remainGoal} マス`;
+      }
+
+      const remainChestText = document.getElementById('remainChestText');
+      const tagChest = document.getElementById('tagChest');
+
+      if (currentStep < config.itemStep) {
+        const diff = config.itemStep - currentStep;
+        remainChestText.innerText = `あと ${diff} マス`;
+        tagChest.style.display = 'flex';
+      } else if (currentStep === config.itemStep) {
+        remainChestText.innerText = 'いまここ！';
+        tagChest.style.display = 'flex';
+      } else {
+        remainChestText.innerText = 'GETずみ！';
+      }
+    }
+
+    // 「たいせんあいて を えらぶ！ ＞」を押したときの遷移
+    function goToOpponentScreen() {
+      window.location.href = 'aite.html';
+    }
+
+    function goToItemScreen() {
+      // ⑤ アイテム表示画面へ
+      window.location.href = 'items.html';
+      alert('たからばこ を ひらいた！\n「⑤ アイテム表示画面」へすすみます！');
+    }
+
+    function goToChampionScreen() {
+      // ⑥ チャンピオン画面へ
+      window.location.href = 'champion.html';
+      alert('チャンピオンに ちょうせん！\n「⑥ チャンピオン画面」へすすみます！');
+    }
+
+    function goBack() {
+      window.location.href = 'home.html';
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  </script>
+</body>
+</html>
