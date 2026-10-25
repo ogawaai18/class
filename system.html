@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>うでずもうチャンピオンロード</title>
+<style>
+  :root {
+    --bg-gradient: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+    --card-border: #3b82f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
+    background: var(--bg-gradient);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-x: hidden;
+    transition: background 0.8s ease;
+  }
+
+  /* 画面切り替え共通 */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 94%;
+    max-width: 900px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+    position: relative;
+    animation: fadeIn 0.4s ease;
+  }
+  .active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  h1 { font-size: 2.2rem; margin: 10px 0 20px 0; text-align: center; }
+  p.sub { font-size: 1.3rem; color: #555; margin: 0 0 20px 0; font-weight: bold; }
+
+  /* ルート選択画面 */
+  .route-container { display: flex; gap: 20px; width: 100%; justify-content: center; }
+  .route-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 20px;
+    padding: 25px 15px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border: 5px solid transparent;
+    transition: all 0.2s;
+  }
+  .route-card:active { transform: scale(0.97); }
+  .route-sea { border-color: #0284c7; background: #f0f9ff; }
+  .route-mountain { border-color: #16a34a; background: #f0fdf4; }
+  .route-sky { border-color: #9333ea; background: #faf5ff; }
+  .route-icon { font-size: 4.5rem; margin-bottom: 10px; }
+  .route-title { font-size: 1.8rem; font-weight: bold; }
+
+  /* ロードマップ全貌バー */
+  .roadmap-overview {
+    width: 100%;
+    background: #f8fafc;
+    border: 3px solid #cbd5e1;
+    border-radius: 20px;
+    padding: 16px 12px;
+    margin-bottom: 20px;
+  }
+  .roadmap-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #475569;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .held-item-badge {
+    background: #fef08a;
+    border: 2px solid #eab308;
+    color: #854d0e;
+    padding: 4px 14px;
+    border-radius: 30px;
+    font-size: 1rem;
+  }
+  .track {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 0 10px;
+  }
+  .track::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    right: 20px;
+    height: 8px;
+    background: #e2e8f0;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+  .tile {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #fff;
+    border: 4px solid #94a3b8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    position: relative;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  .tile.item-tile { border-color: #f59e0b; background: #fef3c7; }
+  .tile.goal-tile { border-color: #ef4444; background: #fee2e2; }
+  .tile.current {
+    border-color: #2563eb;
+    background: #dbeafe;
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(37,99,235,0.6);
+  }
+  .avatar-pin {
+    position: absolute;
+    top: -34px;
+    font-size: 1.8rem;
+    animation: bounce 0.8s infinite alternate;
+  }
+  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+  /* 残りマス告知バナー */
+  .target-banner {
+    font-size: 1.8rem;
+    font-weight: bold;
+    background: #ffedd5;
+    color: #c2410c;
+    border: 3px dashed #f97316;
+    padding: 10px 24px;
+    border-radius: 50px;
+    margin-bottom: 20px;
+  }
+
+  /* エンカウント・対戦カード */
+  .opponent-container { display: flex; gap: 16px; width: 100%; justify-content: center; }
+  .opponent-card {
+    flex: 1;
+    background: white;
+    border: 4px solid #cbd5e1;
+    border-radius: 20px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+    transition: transform 0.15s, border-color 0.2s;
+  }
+  .opponent-card:active { transform: scale(0.96); }
+  .opp-avatar { font-size: 3.5rem; margin-bottom: 4px; }
+  .opp-name { font-size: 1.4rem; font-weight: bold; margin-bottom: 4px; }
+  .opp-stars { font-size: 1.6rem; color: #eab308; margin-bottom: 4px; }
+  .opp-moves { font-size: 1.1rem; color: #2563eb; font-weight: bold; }
+
+  /* バトル画面 */
+  .battle-display {
+    text-align: center;
+    margin: 15px 0;
+  }
+  .battle-vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin: 15px 0;
+  }
+  .fighter { font-size: 4.5rem; }
+  .vs-badge { font-size: 2.2rem; font-weight: 900; color: #ef4444; }
+
+  .action-buttons { display: flex; gap: 20px; width: 100%; justify-content: center; margin-top: 20px; }
+  .btn {
+    flex: 1;
+    max-width: 280px;
+    padding: 18px 20px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    color: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-win { background: linear-gradient(135deg, #10b981, #059669); }
+  .btn-lose { background: linear-gradient(135deg, #ef4444, #dc2626); font-size: 1.4rem; }
+
+  /* アイテム選択 */
+  .item-card {
+    flex: 1;
+    background: #fffbeb;
+    border: 4px solid #f59e0b;
+    border-radius: 20px;
+    padding: 20px 10px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .item-icon { font-size: 3.8rem; margin-bottom: 10px; }
+  .item-title { font-size: 1.4rem; font-weight: bold; color: #b45309; }
+
+  /* 画面フラッシュ演出 */
+  .flash-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .flash-anim { animation: flashScreen 0.5s ease-out; }
+  @keyframes flashScreen {
+    0% { opacity: 0; }
+    30% { opacity: 0.85; }
+    100% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="flash" class="flash-overlay"></div>
+
+  <!-- 画面1: ルート選択 -->
+  <div id="screen-route" class="screen active">
+    <h1>🚩 どの みちを すすむ？</h1>
+    <p class="sub">てを にぎって おしえてね！</p>
+    <div class="route-container">
+      <div class="route-card route-sea" onclick="chooseRoute('sea')">
+        <div class="route-icon">🌊</div>
+        <div class="route-title">うみの道</div>
+        <p>すずしい なみのおと</p>
+      </div>
+      <div class="route-card route-mountain" onclick="chooseRoute('mountain')">
+        <div class="route-icon">⛰️</div>
+        <div class="route-title">やまの道</div>
+        <p>ちからが わいてくる</p>
+      </div>
+      <div class="route-card route-sky" onclick="chooseRoute('sky')">
+        <div class="route-icon">☁️</div>
+        <div class="route-title">そらの道</div>
+        <p>かぜに のっていこう</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 画面2: メイン・ロードマップ＆対戦相手選択 -->
+  <div id="screen-main" class="screen">
+    <!-- 全貌バー -->
+    <div class="roadmap-overview">
+      <div class="roadmap-title">
+        <span id="route-label-display">🚩 コースのぜんぼう</span>
+        <span id="held-item-display" class="held-item-badge" style="display:none;">持ち物: なし</span>
+      </div>
+      <div class="track">
+        <div class="tile current" id="tile-0"><div class="avatar-pin">👦</div>S</div>
+        <div class="tile" id="tile-1">1</div>
+        <div class="tile" id="tile-2">2</div>
+        <div class="tile item-tile" id="tile-3">🎁</div>
+        <div class="tile" id="tile-4">4</div>
+        <div class="tile" id="tile-5">5</div>
+        <div class="tile goal-tile" id="tile-6">👑</div>
+      </div>
+    </div>
+
+    <!-- 残りマス告知 -->
+    <div id="target-banner" class="target-banner">アイテムまで あと 3 マス！</div>
+
+    <h1>⚔️ たいせんあいてが あらわれた！</h1>
+    <p class="sub">どの せんせいと しょうぶする？（★の数だけ すすめるよ）</p>
+
+    <!-- 対戦相手カード3択（★1, ★2, ★3） -->
+    <div class="opponent-container">
+      <div class="opponent-card" style="border-color:#38bdf8;" onclick="selectOpponent(0)">
+        <div class="opp-avatar" id="opp-img-0">👨‍🏫</div>
+        <div class="opp-name" id="opp-name-0">〇〇せんせい</div>
+        <div class="opp-stars">★☆☆</div>
+        <div class="opp-moves">1マス すすむ</div>
+      </div>
+      <div class="opponent-card" style="border-color:#f59e0b;" onclick="selectOpponent(1)">
+        <div class="opp-avatar" id="opp-img-1">👩‍🏫</div>
+        <div class="opp-name" id="opp-name-1">△△せんせい</div>
+        <div class="opp-stars">★★☆</div>
+        <div class="opp-moves">2マス すすむ</div>
+      </div>
+      <div class="opponent-card" style="border-color:#ef4444;" onclick="selectOpponent(2)">
+        <div class="opp-avatar" id="opp-img-2">👨‍💼</div>
+        <div class="opp-name" id="opp-name-2">校長せんせい</div>
+        <div class="opp-stars">★★★</div>
+        <div class="opp-moves">3マス すすむ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 画面3: 腕相撲バトル画面 -->
+  <div id="screen-battle" class="screen">
+    <h1 id="battle-headline" style="color:#ef4444;">うでずもう しょうぶ！</h1>
+    <div class="battle-display">
+      <div class="battle-vs">
+        <div class="fighter">👦<br><span style="font-size:1.2rem;font-weight:bold;">Aくん</span></div>
+        <div class="vs-badge">VS</div>
+        <div class="fighter"><span id="battle-opp-avatar">👨‍🏫</span><br><span id="battle-opp-name" style="font-size:1.2rem;font-weight:bold;">先生</span></div>
+      </div>
+      <div id="battle-item-reminder" style="font-size:1.4rem; color:#b45309; font-weight:bold; margin-top:10px;"></div>
+      <p class="sub" style="font-size:1.6rem; color:#2563eb; margin-top:15px;">「レディー・ゴー！」で てを たおそう！💪</p>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-win" onclick="handleBattleResult(true)">✨ かった！！</button>
+      <button class="btn btn-lose" onclick="handleBattleResult(false)">まけた…（1マスもどる）</button>
+    </div>
+  </div>
+
+  <!-- 画面4: アイテム選択画面 -->
+  <div id="screen-item" class="screen">
+    <div class="target-banner" style="background:#fef3c7; border-color:#f59e0b; color:#b45309;">
+      ✨ アイテムマスに とうちゃく！
+    </div>
+    <h1>きょうかアイテムを えらぼう！</h1>
+    <p class="sub">つぎの しょうぶで つかえる とくべつな作戦！</p>
+    <div class="route-container">
+      <div class="item-card" onclick="pickItem('こゆびガード (先生は小指1本)')">
+        <div class="item-icon">☝️</div>
+        <div class="item-title">こゆびガード</div>
+        <p>せんせいは こゆび１ぽん！</p>
+      </div>
+      <div class="item-card" onclick="pickItem('めかくしパワー (先生は目をつぶる)')">
+        <div class="item-icon">🙈</div>
+        <div class="item-title">めかくしパワー</div>
+        <p>せんせいは めをつぶる！</p>
+      </div>
+      <div class="item-card" onclick="pickItem('ちから２ばい (大げさに吹き飛ぶ)')">
+        <div class="item-icon">💥</div>
+        <div class="item-title">ちから２ばい</div>
+        <p>せんせいが ドカーンと たおれる！</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 画面5: チャンピオンゴール -->
+  <div id="screen-goal" class="screen">
+    <div class="target-banner" style="background:#fee2e2; border-color:#ef4444; color:#b91c1c;">
+      🏆 ぴったり ゴール とうちゃく！！
+    </div>
+    <h1 style="font-size:3rem; margin:10px 0;">🎉 うでずもう チャンピオン たっせい！ 🎉</h1>
+    <div style="font-size:6.5rem; margin:15px 0;">👑💪✨</div>
+    <p class="sub" style="font-size:1.6rem;">じぶんのちからで さいごまで たたかいぬいたね！</p>
+    <button class="btn btn-win" style="max-width:320px; margin-top:20px;" onclick="location.reload()">もういちど あそぶ</button>
+  </div>
+
+<script>
+  /* --- Web Audio API サウンド合成（完全オフライン対応） --- */
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'click') {
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'encounter') { // RPGエンカウント音
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.setValueAtTime(440, now + 0.08);
+      osc.frequency.setValueAtTime(880, now + 0.16);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.3);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } else if (type === 'win') { // ファンファーレ
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, idx) => {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'triangle';
+        o.frequency.value = freq;
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(0.3, now + idx * 0.12);
+        g.gain.linearRampToValueAtTime(0, now + idx * 0.12 + 0.35);
+        o.start(now + idx * 0.12);
+        o.stop(now + idx * 0.12 + 0.35);
+      });
+    } else if (type === 'lose') { // 負け音
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.4);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.4);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    }
+  }
+
+  /* --- ゲーム状態管理 --- */
+  let currentPosition = 0; // 0:スタート, 3:アイテム, 6:ゴール
+  let heldItem = "";
+  let chosenOpponent = null;
+
+  // 先生リスト（写真や名前は現場に合わせて書き換え可能）
+  const teachers = [
+    { name: "すずき先生", avatar: "👨‍🏫", stars: 1 },
+    { name: "たかはし先生", avatar: "👩‍🏫", stars: 2 },
+    { name: "校長先生", avatar: "👨‍💼", stars: 3 }
+  ];
+
+  function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+  }
+
+  /* 画面フラッシュ */
+  function triggerFlash() {
+    const flash = document.getElementById('flash');
+    flash.classList.remove('flash-anim');
+    void flash.offsetWidth; // リフロー
+    flash.classList.add('flash-anim');
+  }
+
+  /* ルート選択 */
+  function chooseRoute(type) {
+    playSound('click');
+    const body = document.body;
+    const label = document.getElementById('route-label-display');
+
+    if (type === 'sea') {
+      body.style.background = 'linear-gradient(135deg, #38bdf8 0%, #1e40af 100%)';
+      label.textContent = "🌊 うみの道 コース";
+    } else if (type === 'mountain') {
+      body.style.background = 'linear-gradient(135deg, #4ade80 0%, #166534 100%)';
+      label.textContent = "⛰️ やまの道 コース";
+    } else if (type === 'sky') {
+      body.style.background = 'linear-gradient(135deg, #c084fc 0%, #4c1d95 100%)';
+      label.textContent = "☁️ そらの道 コース";
+    }
+
+    triggerFlash();
+    playSound('encounter');
+    updateMapDisplay();
+    switchScreen('screen-main');
+  }
+
+  /* ロードマップ・表示更新 */
+  function updateMapDisplay() {
+    // タイルの位置更新
+    for (let i = 0; i <= 6; i++) {
+      const tile = document.getElementById(`tile-${i}`);
+      tile.classList.remove('current');
+      const pin = tile.querySelector('.avatar-pin');
+      if (pin) pin.remove();
+    }
+    const currentTile = document.getElementById(`tile-${currentPosition}`);
+    currentTile.classList.add('current');
+    const pin = document.createElement('div');
+    pin.className = 'avatar-pin';
+    pin.textContent = '👦';
+    currentTile.appendChild(pin);
+
+    // バナー文言
+    const banner = document.getElementById('target-banner');
+    if (currentPosition < 3) {
+      const left = 3 - currentPosition;
+      banner.textContent = `🎁 アイテムまで あと ${left} マス！`;
+      banner.style.background = "#ffedd5";
+      banner.style.color = "#c2410c";
+    } else {
+      const left = 6 - currentPosition;
+      banner.textContent = `👑 チャンピオンまで あと ${left} マス！`;
+      banner.style.background = "#fee2e2";
+      banner.style.color = "#b91c1c";
+    }
+
+    // 持ち物バッジ
+    const itemBadge = document.getElementById('held-item-display');
+    if (heldItem) {
+      itemBadge.style.display = 'inline-block';
+      itemBadge.textContent = `✨ 作戦: ${heldItem}`;
+    }
+  }
+
+  /* 対戦相手選択 */
+  function selectOpponent(index) {
+    playSound('click');
+    chosenOpponent = teachers[index];
+
+    // バトル画面セットアップ
+    document.getElementById('battle-opp-avatar').textContent = chosenOpponent.avatar;
+    document.getElementById('battle-opp-name').textContent = chosenOpponent.name;
+    document.getElementById('battle-headline').textContent = `${chosenOpponent.name} との 勝負！`;
+
+    const reminder = document.getElementById('battle-item-reminder');
+    if (heldItem) {
+      reminder.textContent = `【発動中の作戦】${heldItem}`;
+    } else {
+      reminder.textContent = "";
+    }
+
+    triggerFlash();
+    playSound('encounter');
+    switchScreen('screen-battle');
+  }
+
+  /* バトル結果処理 */
+  function handleBattleResult(isWin) {
+    if (isWin) {
+      playSound('win');
+      currentPosition += chosenOpponent.stars;
+
+      // ぴったり判定・進みすぎ防止
+      if (currentPosition === 3) {
+        // アイテムマス到着
+        updateMapDisplay();
+        setTimeout(() => switchScreen('screen-item'), 600);
+        return;
+      } else if (currentPosition >= 6) {
+        // ゴール到着
+        currentPosition = 6;
+        updateMapDisplay();
+        setTimeout(() => switchScreen('screen-goal'), 600);
+        return;
+      }
+    } else {
+      // 負けた場合（1マス戻る）
+      playSound('lose');
+      if (currentPosition > 0) {
+        currentPosition -= 1;
+      }
+    }
+
+    updateMapDisplay();
+    switchScreen('screen-main');
+  }
+
+  /* アイテム選択 */
+  function pickItem(itemName) {
+    playSound('win');
+    heldItem = itemName;
+    updateMapDisplay();
+    triggerFlash();
+    switchScreen('screen-main');
+  }
+</script>
+</body>
+</html>

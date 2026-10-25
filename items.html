@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>うでずもう チャンピオンロード - アイテムをえらぶ</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', sans-serif;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background-color: #0b192c;
+      color: #fff;
+    }
+
+    /* ヘッダー */
+    header {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #00d2ff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      z-index: 10;
+    }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid #00d2ff;
+      color: #fff;
+      padding: 8px 18px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .nav-btn:active {
+      background: rgba(0, 210, 255, 0.4);
+      transform: scale(0.95);
+    }
+
+    .screen-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #ffe600;
+      text-shadow: 0 2px 8px rgba(255, 230, 0, 0.5);
+    }
+
+    /* メインエリア */
+    main {
+      flex: 1;
+      position: relative;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px 20px;
+    }
+
+    main::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 25, 47, 0.55);
+      z-index: 1;
+    }
+
+    /* ガイドバー */
+    .instruction-bar {
+      position: relative;
+      z-index: 2;
+      background: rgba(10, 25, 47, 0.9);
+      border: 2px solid #ffe600;
+      padding: 8px 28px;
+      border-radius: 25px;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #00f0ff;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+
+    /* 3枚のアイテムカードコンテナ */
+    .cards-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 24px;
+      width: 100%;
+      max-width: 1050px;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    /* アイテムカード */
+    .card {
+      flex: 1;
+      max-width: 320px;
+      background: linear-gradient(160deg, #1b2f4a 0%, #0c1829 100%);
+      border: 4px solid #2980b9;
+      border-radius: 22px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .card:active {
+      transform: scale(0.97);
+    }
+
+    /* タイプバッジ */
+    .card-badge {
+      position: absolute;
+      top: -12px;
+      left: 14px;
+      padding: 3px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+      border: 2px solid #fff;
+    }
+
+    .badge-power { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+    .badge-speed { background: linear-gradient(135deg, #f7971e, #ffd200); color: #222; }
+    .badge-guard { background: linear-gradient(135deg, #00b09b, #96c93d); }
+
+    /* 選択時の発光 */
+    .card.selected {
+      border-color: #ffe600;
+      transform: translateY(-10px) scale(1.04);
+      box-shadow: 0 15px 35px rgba(255, 230, 0, 0.5), 0 0 25px rgba(255, 230, 0, 0.6);
+      background: linear-gradient(160deg, #24426b 0%, #10233d 100%);
+    }
+
+    .card.selected::after {
+      content: "✔ これをつかう！";
+      position: absolute;
+      bottom: -15px;
+      background: #ffe600;
+      color: #002b4d;
+      font-size: 0.95rem;
+      font-weight: 900;
+      padding: 2px 14px;
+      border-radius: 14px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    }
+
+    /* アイテム名 */
+    .card-name {
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: #ffffff;
+      margin-top: 6px;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    /* 画像枠（.png画像を入れる場所） */
+    .card-image-box {
+      width: 100%;
+      height: 170px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 3px solid #00d2ff;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .card-image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+    }
+
+    .fallback-icon {
+      font-size: 5rem;
+    }
+
+    /* 効果ボックス */
+    .effect-box {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px dashed #ffe600;
+      border-radius: 12px;
+      padding: 10px 8px;
+      min-height: 85px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .effect-tag {
+      font-size: 0.8rem;
+      color: #ffe600;
+      font-weight: 900;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .effect-text {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #ffffff;
+      line-height: 1.4;
+    }
+
+    /* 下部決定ボタンバー */
+    .bottom-bar {
+      position: relative;
+      z-index: 10;
+      padding: 14px 20px;
+      background: rgba(10, 25, 47, 0.94);
+      border-top: 3px solid #00d2ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .confirm-btn {
+      background: linear-gradient(135deg, #f7971e, #ffd200);
+      color: #1a2a3a;
+      border: 4px solid #ffffff;
+      border-radius: 40px;
+      padding: 14px 55px;
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(255, 210, 0, 0.5);
+      transition: all 0.2s ease;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .confirm-btn.active {
+      opacity: 1;
+      pointer-events: auto;
+      animation: pulseGoldBtn 1.8s infinite;
+    }
+
+    .confirm-btn.active:active {
+      transform: scale(0.95);
+    }
+
+    @keyframes pulseGoldBtn {
+      0% { box-shadow: 0 0 0 0 rgba(255, 210, 0, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(255, 210, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 210, 0, 0); }
+    }
+
+    /* アイテムゲット モーダルポップアップ */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: linear-gradient(145deg, #1b3860, #0a172a);
+      border: 5px solid #ffe600;
+      border-radius: 35px;
+      padding: 35px 30px;
+      max-width: 580px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.8), 0 0 35px rgba(255, 230, 0, 0.6);
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-overlay.show .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #ffe600;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .modal-item-name {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #00f0ff;
+      margin-bottom: 15px;
+    }
+
+    .modal-effect {
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid #ffe600;
+      border-radius: 18px;
+      padding: 16px;
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #ffffff;
+      line-height: 1.5;
+      margin-bottom: 25px;
+    }
+
+    .modal-close-btn {
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+      color: #fff;
+      border: 3px solid #ffffff;
+      border-radius: 30px;
+      padding: 12px 42px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0, 114, 255, 0.4);
+    }
+
+    .modal-close-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* iPad 縦向き対応 */
+    @media (orientation: portrait) {
+      .cards-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        overflow-y: auto;
+        max-height: 72vh;
+      }
+      .card {
+        width: 90%;
+        max-width: 450px;
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+        padding: 10px 14px;
+      }
+      .card.selected {
+        transform: scale(1.02);
+      }
+      .card.selected::after {
+        right: 15px;
+        bottom: 8px;
+        left: auto;
+      }
+      .card-image-box {
+        width: 110px;
+        height: 110px;
+        margin-bottom: 0;
+        flex-shrink: 0;
+      }
+      .card-badge {
+        position: static;
+        margin-bottom: 4px;
+        display: inline-block;
+      }
+      .effect-box {
+        min-height: auto;
+      }
+      .confirm-btn {
+        font-size: 1.4rem;
+        padding: 12px 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 上部バー -->
+  <header>
+    <button class="nav-btn" onclick="goToRoadmap()">＜ ロードマップをみる</button>
+    <div class="screen-title" id="screenTitle">🎁 アイテムを えらぶ</div>
+    <div style="width: 100px;"></div>
+  </header>
+
+  <main id="mainContainer">
+    <div class="instruction-bar">つかいたい アイテム を えらんでね！</div>
+    
+    <!-- 3枚のアイテムカード -->
+    <div class="cards-container" id="cardsContainer"></div>
+  </main>
+
+  <!-- 下部「アイテムけってい！」ボタン -->
+  <footer class="bottom-bar">
+    <button class="confirm-btn" id="confirmBtn" type="button" onclick="showItemModal()">
+      アイテム けってい！ ＞
+    </button>
+  </footer>
+
+  <!-- ポップアップ（アイテム発動） -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-title">✨ アイテム はつどう！ ✨</div>
+      <div class="modal-item-name" id="modalItemName">パワー２ばいドリンク</div>
+      <div class="modal-effect" id="modalEffect">【こうか】<br>うでのちからが ２ばいになったぞ！</div>
+      <button class="modal-close-btn" type="button" onclick="closeModal()">ロードマップへ もどる</button>
+    </div>
+  </div>
+
+  <script>
+    // アイテムデータ一覧
+    const ITEMS_DATA = [
+      {
+        id: 'drink',
+        name: 'パワー２ばいドリンク',
+        badge: 'パワーUP',
+        badgeClass: 'badge-power',
+        image: 'drink.png',
+        fallbackIcon: '🧪',
+        effect: 'うでの ちからが ２ばいに なったぞ！\nぜんりょくで いってみよう！'
+      },
+      {
+        id: 'punch',
+        name: 'イナズマパンチ',
+        badge: 'スピードUP',
+        badgeClass: 'badge-speed',
+        image: 'punch.png',
+        fallbackIcon: '⚡',
+        effect: 'さいしょの ３びょうかん、 スーパーパワーが はつどう！\nすぐにちからを いれよう！'
+      },
+      {
+        id: 'shield',
+        name: 'てっぺきのたて',
+        badge: 'ガードUP',
+        badgeClass: 'badge-guard',
+        image: 'shield.png',
+        fallbackIcon: '🛡️',
+        effect: 'あいての こうげきを ガード！\nまけそうになっても たえろ！'
+      }
+    ];
+
+    // 選んだ道の背景を引き継ぎ
+    const selectedRoad = localStorage.getItem('selectedRoad') || 'うみのみち';
+    const BG_MAP = {
+      'うみのみち': 'umi.png',
+      'やまのみち': 'yama.png',
+      'そらのみち': 'sora.png'
+    };
+
+    let selectedItemIndex = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 背景画像の適用
+      const bg = BG_MAP[selectedRoad] || 'umi.png';
+      document.getElementById('mainContainer').style.backgroundImage = `url('${bg}')`;
+
+      // アイテムカードの描画
+      renderItems();
+    });
+
+    function renderItems() {
+      const container = document.getElementById('cardsContainer');
+      container.innerHTML = '';
+
+      ITEMS_DATA.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.id = `card-${index}`;
+        card.onclick = () => selectItem(index);
+
+        card.innerHTML = `
+          <div class="card-badge ${item.badgeClass}">${item.badge}</div>
+          <div class="card-name">${item.name}</div>
+          <div class="card-image-box">
+            <img src="${item.image}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div class="fallback-icon" style="display:none;">${item.fallbackIcon}</div>
+          </div>
+          <div class="effect-box">
+            <div class="effect-tag">【こうか】</div>
+            <div class="effect-text">${item.effect.replace(/\n/g, '<br>')}</div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function selectItem(index) {
+      selectedItemIndex = index;
+      const item = ITEMS_DATA[index];
+
+      // ハイライト切り替え
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+      const activeCard = document.getElementById(`card-${index}`);
+      if (activeCard) {
+        activeCard.classList.add('selected');
+      }
+
+      // 「アイテムけってい！」ボタンを有効化
+      const confirmBtn = document.getElementById('confirmBtn');
+      confirmBtn.classList.add('active');
+
+      // 音声読み上げ
+      speakText(`${item.name}！ ${item.effect}`);
+    }
+
+    function showItemModal() {
+      if (selectedItemIndex === null) return;
+
+      const item = ITEMS_DATA[selectedItemIndex];
+      document.getElementById('modalItemName').innerText = item.name;
+      document.getElementById('modalEffect').innerHTML = `【こうか】<br>${item.effect.replace(/\n/g, '<br>')}`;
+
+      // 選んだアイテムを保存（対戦相手画面などで使うことも可能）
+      localStorage.setItem('selectedItem', item.name);
+
+      // ポップアップ表示
+      document.getElementById('modalOverlay').classList.add('show');
+      speakText(`${item.name} を そうびしたぞ！`);
+    }
+
+    // ポップアップを閉じてロードマップへ戻る
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('show');
+      goToRoadmap();
+    }
+
+    function goToRoadmap() {
+      window.location.href = 'roadmap.html';
+    }
+
+    // 音声合成
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  </script>
+</body>
+</html>

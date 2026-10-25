@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>うでずもう チャンピオンロード - チャンピオン！</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', sans-serif;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at center, #1b3a6b 0%, #06101e 100%);
+      color: #fff;
+      position: relative;
+    }
+
+    /* 紙吹雪用キャンバス */
+    #confettiCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    /* ヘッダー */
+    header {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #ffd700;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      z-index: 20;
+    }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid #ffd700;
+      color: #fff;
+      padding: 8px 18px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .nav-btn:active {
+      background: rgba(255, 215, 0, 0.3);
+      transform: scale(0.95);
+    }
+
+    .header-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #ffd700;
+      text-shadow: 0 0 12px rgba(255, 215, 0, 0.7);
+    }
+
+    /* メインコンテナ */
+    main {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px 20px;
+      z-index: 10;
+      text-align: center;
+    }
+
+    /* 背景の後光（放射光）エフェクト */
+    .sunburst {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 160vmax;
+      height: 160vmax;
+      transform: translate(-50%, -50%);
+      background: repeating-conic-gradient(
+        from 0deg,
+        rgba(255, 215, 0, 0.08) 0deg 15deg,
+        transparent 15deg 30deg
+      );
+      animation: rotateSunburst 40s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes rotateSunburst {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* コンテンツエリア */
+    .content-box {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 820px;
+      width: 100%;
+    }
+
+    /* 「おめでとう！」リボン見出し */
+    .congrats-ribbon {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      color: #fff;
+      font-size: 2.2rem;
+      font-weight: 900;
+      padding: 8px 45px;
+      border-radius: 50px;
+      border: 4px solid #fff;
+      box-shadow: 0 8px 25px rgba(255, 65, 108, 0.6);
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+      animation: bounceTitle 1.8s infinite ease-in-out;
+    }
+
+    @keyframes bounceTitle {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.03); }
+    }
+
+    /* チャンピオンタイトル */
+    .champ-title {
+      font-size: 3.2rem;
+      font-weight: 900;
+      color: #ffe600;
+      text-shadow: 0 4px 15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 230, 0, 0.8);
+      letter-spacing: 3px;
+      margin-bottom: 15px;
+    }
+
+    /* 巨大トロフィー・メダル演出エリア */
+    .trophy-container {
+      position: relative;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    .trophy-icon {
+      font-size: 8rem;
+      line-height: 1;
+      filter: drop-shadow(0 10px 25px rgba(255, 215, 0, 0.8));
+      animation: pulseTrophy 2s infinite ease-in-out;
+      display: inline-block;
+    }
+
+    @keyframes pulseTrophy {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(4deg); }
+    }
+
+    /* メダル授与メッセージボード */
+    .medal-message-card {
+      background: rgba(10, 25, 47, 0.88);
+      border: 4px solid #ffd700;
+      border-radius: 30px;
+      padding: 22px 35px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 215, 0, 0.4);
+      margin-bottom: 25px;
+      max-width: 680px;
+      width: 90%;
+    }
+
+    .medal-sub {
+      font-size: 1.4rem;
+      color: #00f0ff;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .medal-main {
+      font-size: 2.1rem;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.4;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    .medal-highlight {
+      color: #ffe600;
+      font-size: 2.4rem;
+      text-decoration: underline;
+      text-underline-offset: 6px;
+    }
+
+    /* 下部ボタンバー */
+    .bottom-bar {
+      position: relative;
+      z-index: 20;
+      padding: 14px 20px;
+      background: rgba(10, 25, 47, 0.94);
+      border-top: 3px solid #ffd700;
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .action-btn {
+      border: 3px solid #ffffff;
+      border-radius: 40px;
+      padding: 12px 36px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* もういちど遊ぶボタン */
+    .restart-btn {
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+      color: #fff;
+    }
+
+    /* もう一度ファンファーレを鳴らすボタン */
+    .fanfare-btn {
+      background: linear-gradient(135deg, #f7971e, #ffd200);
+      color: #1a2a3a;
+    }
+
+    /* iPad 縦向き対応 */
+    @media (orientation: portrait) {
+      .congrats-ribbon {
+        font-size: 1.6rem;
+        padding: 6px 28px;
+      }
+      .champ-title {
+        font-size: 2.4rem;
+      }
+      .trophy-icon {
+        font-size: 6rem;
+      }
+      .medal-sub {
+        font-size: 1.1rem;
+      }
+      .medal-main {
+        font-size: 1.6rem;
+      }
+      .medal-highlight {
+        font-size: 1.8rem;
+      }
+      .action-btn {
+        font-size: 1.2rem;
+        padding: 10px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 紙吹雪用キャンバス -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <header>
+    <button class="nav-btn" onclick="goToRoadmap()">＜ ロードマップへ</button>
+    <div class="header-title">👑 ゴールとうちゃく！</div>
+    <div style="width: 100px;"></div>
+  </header>
+
+  <main>
+    <!-- ぐるぐる回る光の背景 -->
+    <div class="sunburst"></div>
+
+    <div class="content-box">
+      <div class="congrats-ribbon">🎊 おめでとう！！ 🎊</div>
+      <div class="champ-title" id="champRoadName">チャンピオン たっせい！</div>
+
+      <!-- トロフィー（タップでいつでもファンファーレ再生） -->
+      <div class="trophy-container" onclick="triggerCelebration()">
+        <div class="trophy-icon">🏆</div>
+      </div>
+
+      <!-- 先生からメダルをもらうメッセージ -->
+      <div class="medal-message-card">
+        <div class="medal-sub">★ さいごのミッション ★</div>
+        <div class="medal-main">
+          せんせい から<br>
+          <span class="medal-highlight">チャンピオンメダル</span> を<br>
+          うけとろう！ 🏅
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 下部操作ボタン -->
+  <footer class="bottom-bar">
+    <button class="action-btn fanfare-btn" type="button" onclick="triggerCelebration()">
+      🎺 もういちど おいわい！
+    </button>
+    <button class="action-btn restart-btn" type="button" onclick="restartGame()">
+      🔄 さいしょから あそぶ
+    </button>
+  </footer>
+
+  <script>
+    const selectedRoad = localStorage.getItem('selectedRoad') || 'うみのみち';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 道名の反映
+      document.getElementById('champRoadName').innerText = `${selectedRoad} 制覇！`;
+
+      // 画面読み込み時にファンファーレを鳴らす（iPad等の自動再生制限対策付き）
+      playFanfare();
+
+      // 音声読み上げ
+      setTimeout(() => {
+        speakText(`おめでとう！チャンピオンたっせい！せんせいから、チャンピオンメダルをうけとろう！`);
+      }, 1400);
+
+      // 紙吹雪アニメーション開始
+      startConfetti();
+    });
+
+    // 画面タップ・ボタン押しでいつでもお祝いを再演
+    function triggerCelebration() {
+      playFanfare();
+      speakText('おめでとう！チャンピオンメダルを うけとろう！');
+      burstConfetti();
+    }
+
+    // --- Web Audio API を用いたファンファーレ生成音（外部ファイル不要） ---
+    function playFanfare() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+
+        // ファンファーレの譜面データ（周波数Hz, 開始秒, 長さ秒）
+        // ド・ミ・ソ・高ド による祝祭的なトランペット和音フレーズ
+        const notes = [
+          // 導入（タ・タ・タ・タ）
+          { f: 523.25, t: 0.0, d: 0.15 }, // C5
+          { f: 523.25, t: 0.18, d: 0.15 }, // C5
+          { f: 523.25, t: 0.36, d: 0.15 }, // C5
+          { f: 659.25, t: 0.54, d: 0.45 }, // E5
+          // 展開（ソ・ファ・ミ・レ）
+          { f: 783.99, t: 1.05, d: 0.15 }, // G5
+          { f: 659.25, t: 1.25, d: 0.15 }, // E5
+          { f: 783.99, t: 1.45, d: 0.15 }, // G5
+          // 決めの和音ファンファーレ（長音）
+          { f: 1046.50, t: 1.65, d: 1.1 }, // 高音C6
+          { f: 783.99, t: 1.65, d: 1.1 },  // G5（和音）
+          { f: 523.25, t: 1.65, d: 1.1 }   // C5（和音）
+        ];
+
+        notes.forEach(n => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'triangle'; // トランペットに近い倍音感
+          osc.frequency.setValueAtTime(n.f, ctx.currentTime + n.t);
+
+          gain.gain.setValueAtTime(0, ctx.currentTime + n.t);
+          gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + n.t + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + n.t + n.d);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(ctx.currentTime + n.t);
+          osc.stop(ctx.currentTime + n.t + n.d);
+        });
+      } catch (e) {
+        console.warn('AudioContext error:', e);
+      }
+    }
+
+    // --- 音声合成 ---
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.15;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    // --- 紙吹雪アニメーション ---
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const colors = ['#ffd700', '#ff416c', '#00f0ff', '#ffffff', '#2ecc71', '#ff9f43'];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createParticle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height,
+        w: Math.random() * 12 + 6,
+        h: Math.random() * 8 + 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: Math.random() * 2 - 1,
+        vy: Math.random() * 3 + 2.5,
+        rot: Math.random() * 360,
+        vRot: Math.random() * 6 - 3
+      };
+    }
+
+    function startConfetti() {
+      particles = [];
+      for (let i = 0; i < 90; i++) {
+        particles.push(createParticle());
+      }
+      renderConfetti();
+    }
+
+    function burstConfetti() {
+      for (let i = 0; i < 50; i++) {
+        const p = createParticle();
+        p.y = Math.random() * (canvas.height * 0.4);
+        particles.push(p);
+      }
+    }
+
+    function renderConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vRot;
+
+        if (p.y > canvas.height) {
+          p.y = -10;
+          p.x = Math.random() * canvas.width;
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+
+      requestAnimationFrame(renderConfetti);
+    }
+
+    // --- 画面遷移 ---
+    function goToRoadmap() {
+      window.location.href = 'roadmap.html';
+    }
+
+    function restartGame() {
+      if (confirm('はじめの 道選択画面 に もどりますか？')) {
+        // 現在の進行マスをリセット
+        localStorage.removeItem('currentStep_うみのみち');
+        localStorage.removeItem('currentStep_やまのみち');
+        localStorage.removeItem('currentStep_そらのみち');
+        window.location.href = 'home.html';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>うでずもう チャンピオンロード - 道選択</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', sans-serif;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background-color: #0b192c;
+    }
+
+    /* タイトルヘッダー */
+    header {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #ffffff;
+      text-align: center;
+      padding: 14px 10px;
+      font-size: 1.9rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+      border-bottom: 3px solid #00d2ff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      z-index: 10;
+    }
+
+    /* 3分割エリア */
+    .road-container {
+      flex: 1;
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .road-section {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      border-right: 4px solid rgba(0, 210, 255, 0.4);
+      transition: all 0.25s ease;
+    }
+
+    .road-section:last-child {
+      border-right: none;
+    }
+
+    /* 背景画像 */
+    .road-umi {
+      background-color: #1a365d;
+      background-image: url('umi.png');
+    }
+
+    .road-yama {
+      background-color: #234e52;
+      background-image: url('yama.png');
+    }
+
+    .road-sora {
+      background-color: #2b6cb0;
+      background-image: url('sora.png');
+    }
+
+    /* オーバーレイ */
+    .road-section::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 25, 47, 0.35);
+      transition: background 0.25s;
+    }
+
+    /* 選択時のハイライト */
+    .road-section.selected {
+      box-shadow: inset 0 0 0 8px #00f0ff, inset 0 0 30px rgba(0, 240, 255, 0.5);
+    }
+
+    .road-section.selected::before {
+      background: rgba(0, 150, 255, 0.15);
+    }
+
+    /* 各道のボタン */
+    .road-button {
+      position: relative;
+      z-index: 2;
+      background: #ffffff;
+      color: #0f2b48;
+      border: 5px solid #0099ff;
+      border-radius: 40px;
+      padding: 16px 36px;
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.2s, border-color 0.2s;
+    }
+
+    .road-section.selected .road-button {
+      background-color: #e6f7ff;
+      border-color: #00d2ff;
+      color: #004d80;
+      transform: scale(1.08);
+      box-shadow: 0 10px 25px rgba(0, 210, 255, 0.6);
+    }
+
+    .road-button:active {
+      transform: scale(0.95);
+    }
+
+    /* 下部の決定ポップアップ（初期は完全非表示） */
+    .message-area {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      background: rgba(10, 25, 47, 0.94);
+      border: 4px solid #00d2ff;
+      color: #fff;
+      padding: 18px 38px;
+      border-radius: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 210, 255, 0.3);
+      transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), visibility 0.3s;
+      z-index: 20;
+      white-space: nowrap;
+    }
+
+    .message-area.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .message-text {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #e2f1ff;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .selected-title {
+      color: #00f0ff;
+      font-size: 1.8rem;
+      font-weight: 900;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+    }
+
+    /* 「このみちにちょうせん」大型ボタン */
+    .confirm-btn {
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+      color: #ffffff;
+      border: 4px solid #ffffff;
+      border-radius: 40px;
+      padding: 16px 48px;
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 114, 255, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      transition: transform 0.15s ease, filter 0.2s;
+      animation: pulseGlow 1.8s infinite;
+    }
+
+    .confirm-btn:active {
+      transform: scale(0.94);
+      filter: brightness(0.9);
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(0, 198, 255, 0.6);
+      }
+      70% {
+        box-shadow: 0 0 0 14px rgba(0, 198, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 198, 255, 0);
+      }
+    }
+
+    /* iPad 縦向き対応 */
+    @media (orientation: portrait) {
+      .road-container {
+        flex-direction: column;
+      }
+      .road-section {
+        border-right: none;
+        border-bottom: 4px solid rgba(0, 210, 255, 0.4);
+      }
+      .road-button {
+        font-size: 1.6rem;
+        padding: 12px 28px;
+      }
+      .message-area {
+        bottom: 18px;
+        padding: 14px 24px;
+      }
+      .message-text {
+        font-size: 1.3rem;
+      }
+      .selected-title {
+        font-size: 1.5rem;
+      }
+      .confirm-btn {
+        font-size: 1.4rem;
+        padding: 12px 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>うでずもう チャンピオンロード</header>
+
+  <main class="road-container">
+    <!-- うみのみち -->
+    <section class="road-section road-umi" id="sec-umi" onclick="selectRoad('うみのみち', 'sec-umi')">
+      <button class="road-button" type="button">うみ の みち</button>
+    </section>
+
+    <!-- やまのみち -->
+    <section class="road-section road-yama" id="sec-yama" onclick="selectRoad('やまのみち', 'sec-yama')">
+      <button class="road-button" type="button">やま の みち</button>
+    </section>
+
+    <!-- そらのみち -->
+    <section class="road-section road-sora" id="sec-sora" onclick="selectRoad('そらのみち', 'sec-sora')">
+      <button class="road-button" type="button">そら の みち</button>
+    </section>
+  </main>
+
+  <!-- 下部メッセージ & 決定ボタン -->
+  <div class="message-area" id="messageArea">
+    <div class="message-text">
+      <span class="selected-title" id="selectedRoadName"></span> に きめた！
+    </div>
+    <button class="confirm-btn" type="button" onclick="goToNextScreen()">このみちに ちょうせん！ ＞</button>
+  </div>
+
+  <script>
+    let currentSelectedRoad = '';
+
+    function selectRoad(roadName, sectionId) {
+      // 1. 選択枠の強調
+      document.querySelectorAll('.road-section').forEach(sec => sec.classList.remove('selected'));
+      const activeSection = document.getElementById(sectionId);
+      if (activeSection) {
+        activeSection.classList.add('selected');
+      }
+
+      currentSelectedRoad = roadName;
+
+      // 2. 音声読み上げ
+      speakText(roadName);
+
+      // 3. 道名を表示して下部ポップアップを出す
+      document.getElementById('selectedRoadName').innerText = `【${roadName}】`;
+      document.getElementById('messageArea').classList.add('show');
+
+      // 4. ストレージに保存
+      localStorage.setItem('selectedRoad', roadName);
+    }
+
+    // 「このみちにちょうせん！」を押したときに roadmap.html へ遷移
+    function goToNextScreen() {
+      if (!currentSelectedRoad) return;
+
+      // 選んだ道を保存した状態でロードマップ画面へ移動
+      window.location.href = 'roadmap.html';
+    }
+
+    // iPad / ブラウザ標準の音声合成
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  </script>
+</body>
+</html>
