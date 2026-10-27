@@ -584,12 +584,16 @@
 
     function speakText(text) {
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ja-JP';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.1;
-        window.speechSynthesis.speak(utterance);
+        window.speechSynthesis.cancel(); // 前の音声を止める
+        
+        // ★ここで一拍（約 350ミリ秒 = 0.35秒）あけてからしゃべり始める
+        setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'ja-JP';
+          utterance.rate = 1.0;
+          utterance.pitch = 1.1;
+          window.speechSynthesis.speak(utterance);
+        }, 500); // 350 の数字を大きくすると間が長くなります（例: 500 で 0.5秒）
       }
     }
   </script>
